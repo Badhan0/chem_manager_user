@@ -1,10 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/design_system.dart';
 import '../services/api_service.dart';
 import 'login_page.dart';
 import 'profile/medical_history_page.dart';
-import 'profile/health_reports_page.dart';
+import 'profile/edit_profile_page.dart';
 import 'dart:convert';
 
 class ProfilePage extends StatefulWidget {
@@ -48,6 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
           // Update cache
           await prefs.setString('user_name', _userName);
           await prefs.setString('user_email', _email);
+          if (user['dob'] != null) await prefs.setString('user_dob', user['dob']);
+          if (user['gender'] != null) await prefs.setString('user_gender', user['gender']);
           if (_profilePhoto.isNotEmpty) await prefs.setString('user_photo', _profilePhoto);
         }
       }
@@ -87,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   radius: 60,
                   backgroundColor: DesignSystem.glassWhite,
                   backgroundImage: _profilePhoto.isNotEmpty ? NetworkImage(_profilePhoto) : null,
-                  child: _profilePhoto.isEmpty ? const Icon(Icons.person, color: Colors.white24, size: 60) : null,
+                  child: _profilePhoto.isEmpty ? Icon(Icons.person, color: DesignSystem.textSub.withOpacity(0.3), size: 60) : null,
                 ),
                 Positioned(
                   bottom: 0,
@@ -109,21 +112,24 @@ class _ProfilePageState extends State<ProfilePage> {
           Text(_userName, style: DesignSystem.h1.copyWith(fontSize: 28)),
           Text(_email, style: DesignSystem.bodyMain.copyWith(color: DesignSystem.textSub)),
           const SizedBox(height: 40),
+          _buildProfileTile('Edit Personal Details', Icons.edit_attributes_rounded, () async {
+            final updated = await Navigator.push(context, MaterialPageRoute(builder: (context) => const EditProfilePage()));
+            if (updated == true) {
+              _loadUserData();
+            }
+          }),
           _buildProfileTile('Medical History', Icons.history_rounded, () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const MedicalHistoryPage()));
-          }),
-          _buildProfileTile('Health Reports', Icons.description_rounded, () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const HealthReportsPage()));
           }),
           const Spacer(),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _handleLogout,
-              icon: const Icon(Icons.logout, color: Colors.redAccent),
-              label: const Text('DE-SYNCHRONISE (LOGOUT)', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+              icon: const Icon(Icons.logout, color: Colors.red),
+              label: const Text('DE-SYNCHRONISE (LOGOUT)', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.redAccent),
+                side: const BorderSide(color: Colors.red),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
@@ -136,18 +142,25 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileTile(String title, IconData icon, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: DesignSystem.primaryAccent, size: 24),
-        title: Text(title, style: DesignSystem.bodyBold),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 16),
-        onTap: onTap,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: DesignSystem.glassWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+            boxShadow: [DesignSystem.softShadow],
+          ),
+          child: ListTile(
+            leading: Icon(icon, color: DesignSystem.primaryAccent, size: 24),
+            title: Text(title, style: DesignSystem.bodyBold),
+            trailing: Icon(Icons.arrow_forward_ios, color: DesignSystem.textSub.withOpacity(0.3), size: 16),
+            onTap: onTap,
+          ),
+        ),
       ),
     );
   }

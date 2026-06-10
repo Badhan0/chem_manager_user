@@ -56,7 +56,7 @@ class _PermissionScreenState extends State<PermissionScreen> {
                 decoration: BoxDecoration(
                   color: DesignSystem.glassWhite,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
                 ),
                 child: const Icon(Icons.security_update_good, size: 64, color: DesignSystem.primaryAccent),
               ),

@@ -4,6 +4,8 @@ import '../controllers/auth_controller.dart';
 import '../theme/design_system.dart';
 import 'home_page.dart';
 import 'otp_screen.dart';
+import 'profile/edit_profile_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignupPage extends StatefulWidget {
   final String? initialEmail;
@@ -114,11 +116,21 @@ class _SignupPageState extends State<SignupPage> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-        (route) => false,
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final phone = prefs.getString('user_phone');
+      if (phone == null || phone.isEmpty || phone == 'Not Provided') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const EditProfilePage(isMandatoryProfileSetup: true)),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+          (route) => false,
+        );
+      }
     } else if (result['error'] == 'ACCESS_DENIED_PROFESSIONAL') {
       _showAccessDeniedDialog(result['message']);
     } else if (result['error'] == 'not_found' || result['message'] == 'User not found') {
@@ -136,7 +148,7 @@ class _SignupPageState extends State<SignupPage> {
         if (!mounted) return;
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const HomePage()),
+          MaterialPageRoute(builder: (context) => const EditProfilePage(isMandatoryProfileSetup: true)),
           (route) => false,
         );
       } else if (signupResult['error'] == 'ACCESS_DENIED_PROFESSIONAL') {
@@ -175,7 +187,7 @@ class _SignupPageState extends State<SignupPage> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: DesignSystem.textMain, size: 20),
                   ),
                   const SizedBox(height: 10),
                   Text('Elite Care Registration', style: DesignSystem.h1.copyWith(fontSize: 28)),
@@ -224,7 +236,7 @@ class _SignupPageState extends State<SignupPage> {
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50), child: Container(color: Colors.transparent)),
+      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80), child: Container(color: Colors.transparent)),
     );
   }
 
@@ -233,12 +245,12 @@ class _SignupPageState extends State<SignupPage> {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: TextField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: DesignSystem.textMain),
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: DesignSystem.primaryAccent, size: 20),
           hintText: label,
@@ -278,12 +290,12 @@ class _SignupPageState extends State<SignupPage> {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: TextButton.icon(
         onPressed: _handleGoogleSignup,
-        icon: Image.network('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png', height: 24),
-        label: Text('Signup with Google', style: DesignSystem.buttonText.copyWith(fontSize: 14)),
+        icon: Image.network('https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png', height: 24),
+        label: Text('Signup with Google', style: TextStyle(color: DesignSystem.textMain, fontWeight: FontWeight.bold, fontSize: 14)),
       ),
     );
   }

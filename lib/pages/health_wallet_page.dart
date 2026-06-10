@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
 
@@ -10,8 +11,9 @@ class HealthWalletPage extends StatelessWidget {
       backgroundColor: DesignSystem.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text('HEALTH WALLET', style: DesignSystem.h2.copyWith(fontSize: 16)),
-        leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_ios_new, size: 20)),
+        leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back_ios_new, color: DesignSystem.textMain, size: 20)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -45,29 +47,36 @@ class HealthWalletPage extends StatelessWidget {
   }
 
   Widget _buildWalletTile(String title, String val, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: DesignSystem.primaryAccent, size: 28),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: DesignSystem.bodyBold),
-                Text(val, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
-              ],
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: DesignSystem.glassWhite,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+            boxShadow: [DesignSystem.softShadow],
           ),
-          const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
-        ],
+          child: Row(
+            children: [
+              Icon(icon, color: DesignSystem.primaryAccent, size: 28),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: DesignSystem.bodyBold),
+                    Text(val, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: DesignSystem.textSub.withOpacity(0.3), size: 14),
+            ],
+          ),
+        ),
       ),
     );
   }

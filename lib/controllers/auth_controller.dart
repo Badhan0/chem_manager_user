@@ -45,8 +45,20 @@ class AuthController {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', data['token']);
-        await prefs.setString('user_id', data['user']['id']);
+        await prefs.setString('user_id', data['user']['userId'] ?? data['user']['id']);
         await prefs.setString('user_name', data['user']['name']);
+        if (data['user']['email'] != null) {
+          await prefs.setString('user_email', data['user']['email']);
+        }
+        if (data['user']['phone'] != null) {
+          await prefs.setString('user_phone', data['user']['phone']);
+        }
+        if (data['user']['dob'] != null) {
+          await prefs.setString('user_dob', data['user']['dob']);
+        }
+        if (data['user']['gender'] != null) {
+          await prefs.setString('user_gender', data['user']['gender']);
+        }
         if (data['user']['photoURL'] != null) {
           await prefs.setString('user_photo', data['user']['photoURL']);
         }
@@ -74,8 +86,20 @@ class AuthController {
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', data['token']);
-        await prefs.setString('user_id', data['user']['id']);
+        await prefs.setString('user_id', data['user']['userId'] ?? data['user']['id']);
         await prefs.setString('user_name', data['user']['name']);
+        if (data['user']['email'] != null) {
+          await prefs.setString('user_email', data['user']['email']);
+        }
+        if (data['user']['phone'] != null) {
+          await prefs.setString('user_phone', data['user']['phone']);
+        }
+        if (data['user']['dob'] != null) {
+          await prefs.setString('user_dob', data['user']['dob']);
+        }
+        if (data['user']['gender'] != null) {
+          await prefs.setString('user_gender', data['user']['gender']);
+        }
         if (data['user']['photoURL'] != null) {
           await prefs.setString('user_photo', data['user']['photoURL']);
         }
@@ -105,8 +129,20 @@ class AuthController {
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', data['token']);
-        await prefs.setString('user_id', data['user']['id']);
+        await prefs.setString('user_id', data['user']['userId'] ?? data['user']['id']);
         await prefs.setString('user_name', data['user']['name']);
+        if (data['user']['email'] != null) {
+          await prefs.setString('user_email', data['user']['email']);
+        }
+        if (data['user']['phone'] != null) {
+          await prefs.setString('user_phone', data['user']['phone']);
+        }
+        if (data['user']['dob'] != null) {
+          await prefs.setString('user_dob', data['user']['dob']);
+        }
+        if (data['user']['gender'] != null) {
+          await prefs.setString('user_gender', data['user']['gender']);
+        }
         if (data['user']['photoURL'] != null) {
           await prefs.setString('user_photo', data['user']['photoURL']);
         }
@@ -167,8 +203,20 @@ class AuthController {
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', data['token']);
-        await prefs.setString('user_id', data['user']['id']);
+        await prefs.setString('user_id', data['user']['userId'] ?? data['user']['id']);
         await prefs.setString('user_name', data['user']['name']);
+        if (data['user']['email'] != null) {
+          await prefs.setString('user_email', data['user']['email']);
+        }
+        if (data['user']['phone'] != null) {
+          await prefs.setString('user_phone', data['user']['phone']);
+        }
+        if (data['user']['dob'] != null) {
+          await prefs.setString('user_dob', data['user']['dob']);
+        }
+        if (data['user']['gender'] != null) {
+          await prefs.setString('user_gender', data['user']['gender']);
+        }
         await prefs.setString('user_photo', firebaseUser.photoURL ?? '');
         return {'success': true};
       } else if (response.statusCode == 404 || data['error'] == 'USER_NOT_FOUND') {
@@ -203,5 +251,48 @@ class AuthController {
   Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('auth_token') != null;
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await ApiService.forgotPassword(email);
+      final data = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200 && (data['success'] == true),
+        'message': data['message'] ?? 'Failed to send OTP',
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyResetOtp(String email, String otp) async {
+    try {
+      final response = await ApiService.verifyResetOtp(email, otp);
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return {
+          'success': true,
+          'message': data['message'],
+          'resetToken': data['resetToken'],
+        };
+      }
+      return {'success': false, 'message': data['message'] ?? 'Invalid OTP'};
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword(String email, String resetToken, String newPassword) async {
+    try {
+      final response = await ApiService.resetPassword(email, resetToken, newPassword);
+      final data = jsonDecode(response.body);
+      return {
+        'success': response.statusCode == 200 && (data['success'] == true),
+        'message': data['message'] ?? 'Failed to reset password',
+      };
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
   }
 }

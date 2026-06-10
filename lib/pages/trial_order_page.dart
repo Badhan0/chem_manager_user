@@ -41,41 +41,48 @@ class TrialOrderPage extends StatelessWidget {
   }
 
   Widget _buildTrialCard(BuildContext context, String title, String desc, String price, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: DesignSystem.primaryAccent.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: DesignSystem.primaryAccent, size: 32),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: DesignSystem.glassWhite,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+            boxShadow: [DesignSystem.softShadow],
           ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: DesignSystem.bodyBold.copyWith(fontSize: 18)),
-                const SizedBox(height: 4),
-                Text(desc, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
-                const SizedBox(height: 12),
-                Text(price, style: DesignSystem.h2.copyWith(fontSize: 20, color: DesignSystem.secondaryAccent)),
-              ],
-            ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: DesignSystem.primaryAccent.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: DesignSystem.primaryAccent, size: 32),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: DesignSystem.bodyBold.copyWith(fontSize: 18)),
+                    const SizedBox(height: 4),
+                    Text(desc, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
+                    const SizedBox(height: 12),
+                    Text(price, style: DesignSystem.h2.copyWith(fontSize: 20, color: DesignSystem.secondaryAccent)),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.arrow_forward_ios, color: DesignSystem.textSub.withOpacity(0.3), size: 20),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 20),
-          ),
-        ],
+        ),
       ),
     );
   }

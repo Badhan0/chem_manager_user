@@ -3,6 +3,8 @@ import 'dart:ui';
 import '../controllers/auth_controller.dart';
 import '../theme/design_system.dart';
 import 'home_page.dart';
+import 'profile/edit_profile_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OTPScreen extends StatefulWidget {
   final String email;
@@ -31,11 +33,21 @@ class _OTPScreenState extends State<OTPScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-        (route) => false,
-      );
+      final prefs = await SharedPreferences.getInstance();
+      final phone = prefs.getString('user_phone');
+      if (phone == null || phone.isEmpty || phone == 'Not Provided') {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const EditProfilePage(isMandatoryProfileSetup: true)),
+          (route) => false,
+        );
+      } else {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+          (route) => false,
+        );
+      }
     } else {
       _showErrorSnackBar(result['message']);
     }
@@ -72,7 +84,7 @@ class _OTPScreenState extends State<OTPScreen> {
                   const SizedBox(height: 40),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.arrow_back_ios_new, color: DesignSystem.textMain, size: 20),
                   ),
                   const SizedBox(height: 40),
                   Text('Verify Identity', style: DesignSystem.h1),
@@ -113,7 +125,7 @@ class _OTPScreenState extends State<OTPScreen> {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: TextField(
         controller: _controllers[index],
@@ -121,7 +133,7 @@ class _OTPScreenState extends State<OTPScreen> {
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         maxLength: 1,
-        style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        style: TextStyle(color: DesignSystem.textMain, fontSize: 20, fontWeight: FontWeight.bold),
         decoration: const InputDecoration(counterText: "", border: InputBorder.none),
         onChanged: (value) {
           if (value.isNotEmpty && index < 5) {
@@ -139,7 +151,7 @@ class _OTPScreenState extends State<OTPScreen> {
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50), child: Container(color: Colors.transparent)),
+      child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80), child: Container(color: Colors.transparent)),
     );
   }
 

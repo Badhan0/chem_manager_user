@@ -6,16 +6,16 @@ import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'visit_detail_page.dart';
 
-class UpcomingVisitsPage extends StatefulWidget {
+class VisitHistoryPage extends StatefulWidget {
   final bool isEmbedded;
-  const UpcomingVisitsPage({super.key, this.isEmbedded = false});
+  const VisitHistoryPage({super.key, this.isEmbedded = false});
 
   @override
-  _UpcomingVisitsPageState createState() => _UpcomingVisitsPageState();
+  _VisitHistoryPageState createState() => _VisitHistoryPageState();
 }
 
-class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
-  List<dynamic> _bookings = [];
+class _VisitHistoryPageState extends State<VisitHistoryPage> {
+  List<dynamic> _historyBookings = [];
   bool _isLoading = true;
   String? _phone;
 
@@ -37,19 +37,21 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
       final response = await ApiService.getBookings(phone: _phone);
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        final upcoming = data.where((booking) {
+        // Filter only visited and not_visited bookings
+        final history = data.where((booking) {
           final status = (booking['status'] ?? 'pending').toString().toLowerCase();
-          return status != 'visited' && status != 'not_visited';
+          return status == 'visited' || status == 'not_visited';
         }).toList();
+
         setState(() {
-          _bookings = upcoming;
+          _historyBookings = history;
           _isLoading = false;
         });
       } else {
         setState(() => _isLoading = false);
       }
     } catch (e) {
-      print('Error fetching bookings: $e');
+      print('Error fetching booking history: $e');
       setState(() => _isLoading = false);
     }
   }
@@ -61,7 +63,7 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Upcoming Visits', style: DesignSystem.h2),
+        title: Text('Visit History', style: DesignSystem.h2),
         leading: widget.isEmbedded
             ? null
             : IconButton(
@@ -75,13 +77,13 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
         color: DesignSystem.primaryAccent,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: DesignSystem.primaryAccent))
-            : _bookings.isEmpty
+            : _historyBookings.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
                     padding: const EdgeInsets.all(24),
-                    itemCount: _bookings.length,
+                    itemCount: _historyBookings.length,
                     itemBuilder: (context, index) {
-                      final booking = _bookings[index];
+                      final booking = _historyBookings[index];
                       return _buildVisitCard(booking);
                     },
                   ),
@@ -104,21 +106,21 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.event_busy_rounded,
+                  Icons.history_toggle_off_rounded,
                   size: 64,
                   color: DesignSystem.primaryAccent,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                'No Visits Scheduled',
+                'No Past Visits',
                 style: DesignSystem.h2,
               ),
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48.0),
                 child: Text(
-                  'Book consultations with premium specialists or clinics to see them here.',
+                  'Your completed and cancelled appointment histories will appear here.',
                   textAlign: TextAlign.center,
                   style: DesignSystem.bodyMain.copyWith(color: DesignSystem.textSub.withOpacity(0.6)),
                 ),
@@ -159,7 +161,7 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
 
     Color statusColor;
     IconData statusIcon;
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'visited':
         statusColor = Colors.green;
         statusIcon = Icons.check_circle_outline;
@@ -198,104 +200,104 @@ class _UpcomingVisitsPageState extends State<UpcomingVisitsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: DesignSystem.primaryAccent.withOpacity(0.1),
-                    backgroundImage: doctorPhoto.isNotEmpty ? NetworkImage(doctorPhoto) : null,
-                    child: doctorPhoto.isEmpty ? const Icon(Icons.person, color: DesignSystem.primaryAccent) : null,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(doctorName, style: DesignSystem.bodyBold.copyWith(fontSize: 16)),
-                        Text(doctorSpecialty, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
-                      ],
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: DesignSystem.primaryAccent.withOpacity(0.1),
+                      backgroundImage: doctorPhoto.isNotEmpty ? NetworkImage(doctorPhoto) : null,
+                      child: doctorPhoto.isEmpty ? const Icon(Icons.person, color: DesignSystem.primaryAccent) : null,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(doctorName, style: DesignSystem.bodyBold.copyWith(fontSize: 16)),
+                          Text(doctorSpecialty, style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            status.toUpperCase(),
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24, color: Colors.black12),
+                Row(
+                  children: [
+                    const Icon(Icons.local_hospital, color: DesignSystem.secondaryAccent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        clinicName,
+                        style: DesignSystem.bodyBold.copyWith(fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+                if (clinicLocation.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 24.0),
+                    child: Text(
+                      clinicLocation,
+                      style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub.withOpacity(0.7)),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                ],
+                const Divider(height: 24, color: Colors.black12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
                       children: [
-                        Icon(statusIcon, color: statusColor, size: 12),
-                        const SizedBox(width: 4),
+                        const Icon(Icons.calendar_today_outlined, color: DesignSystem.primaryAccent, size: 16),
+                        const SizedBox(width: 8),
                         Text(
-                          status.toUpperCase(),
+                          "$formattedDate  |  $appointmentTime",
                           style: TextStyle(
-                            color: statusColor,
-                            fontSize: 9,
+                            color: DesignSystem.primaryAccent,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24, color: Colors.black12),
-              Row(
-                children: [
-                  const Icon(Icons.local_hospital, color: DesignSystem.secondaryAccent, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      clinicName,
-                      style: DesignSystem.bodyBold.copyWith(fontSize: 13),
+                    Text(
+                      "For: $patientName",
+                      style: TextStyle(
+                        color: DesignSystem.textSub.withOpacity(0.8),
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              if (clinicLocation.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Padding(
-                  padding: const EdgeInsets.only(left: 24.0),
-                  child: Text(
-                    clinicLocation,
-                    style: DesignSystem.bodyMain.copyWith(fontSize: 12, color: DesignSystem.textSub.withOpacity(0.7)),
-                  ),
+                  ],
                 ),
               ],
-              const Divider(height: 24, color: Colors.black12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today_outlined, color: DesignSystem.primaryAccent, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        "$formattedDate  |  $appointmentTime",
-                        style: TextStyle(
-                          color: DesignSystem.primaryAccent,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    "For: $patientName",
-                    style: TextStyle(
-                      color: DesignSystem.textSub.withOpacity(0.8),
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

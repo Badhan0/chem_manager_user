@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../theme/design_system.dart';
 
@@ -13,7 +14,7 @@ class MedicalHistoryPage extends StatelessWidget {
         elevation: 0,
         title: Text('Medical History', style: DesignSystem.h2),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: DesignSystem.textMain),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -46,20 +47,27 @@ class MedicalHistoryPage extends StatelessWidget {
   }
 
   Widget _buildHistoryItem(String title, String subtitle, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: DesignSystem.primaryAccent.withOpacity(0.1),
-          child: Icon(icon, color: DesignSystem.primaryAccent, size: 20),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: DesignSystem.glassWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+            boxShadow: [DesignSystem.softShadow],
+          ),
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundColor: DesignSystem.primaryAccent.withOpacity(0.12),
+              child: Icon(icon, color: DesignSystem.primaryAccent, size: 20),
+            ),
+            title: Text(title, style: DesignSystem.bodyBold),
+            subtitle: Text(subtitle, style: DesignSystem.bodyMain),
+          ),
         ),
-        title: Text(title, style: DesignSystem.bodyBold),
-        subtitle: Text(subtitle, style: DesignSystem.bodyMain),
       ),
     );
   }

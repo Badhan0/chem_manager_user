@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DesignSystem {
-  // Futuristic Color Palette (HSL curated)
-  static const Color background = Color(0xFF0F172A); // Slate 900
-  static const Color cardBackground = Color(0xFF1E293B); // Slate 800
-  static const Color primaryAccent = Color(0xFF06B6D4); // Cyan 500
-  static const Color secondaryAccent = Color(0xFF8B5CF6); // Violet 500
-  static const Color glassWhite = Color(0x1AFFFFFF); 
-  static const Color textMain = Colors.white;
-  static const Color textSub = Color(0xFF94A3B8); // Slate 400
+  // Glassmorphic Light Mode Palette (HSL / Slate curated)
+  static const Color background = Color(0xFFF1F5F9); // Light Slate 100
+  static const Color cardBackground = Color(0x99FFFFFF); // 60% opacity white for glass effect
+  static const Color primaryAccent = Color(0xFF0284C7); // Sky 600 - rich, readable blue
+  static const Color secondaryAccent = Color(0xFF7C3AED); // Violet 600 - rich violet
+  static const Color glassWhite = Color(0x66FFFFFF); // 40% white for fields and small elements
+  static const Color textMain = Color(0xFF0F172A); // Slate 900 - very dark for high readability
+  static const Color textSub = Color(0xFF475569); // Slate 600 - readable subtext
 
   static final LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF06B6D4), // Cyan
-      Color(0xFF3B82F6), // Blue
-      Color(0xFF8B5CF6), // Violet
+      Color(0xFF0EA5E9), // Sky 500
+      Color(0xFF2563EB), // Blue 600
+      Color(0xFF7C3AED), // Violet 600
     ],
   );
 
@@ -25,23 +25,38 @@ class DesignSystem {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Colors.white.withOpacity(0.15),
-      Colors.white.withOpacity(0.05),
+      Colors.white.withOpacity(0.65),
+      Colors.white.withOpacity(0.35),
     ],
   );
 
   static BoxShadow neonShadow(Color color) => BoxShadow(
-    color: color.withOpacity(0.5),
-    blurRadius: 20,
-    spreadRadius: -5,
+    color: color.withOpacity(0.25),
+    blurRadius: 18,
+    spreadRadius: -3,
     offset: const Offset(0, 10),
   );
 
   static final BoxShadow softShadow = BoxShadow(
-    color: Colors.black.withOpacity(0.3),
-    blurRadius: 15,
+    color: Colors.black.withOpacity(0.04),
+    blurRadius: 16,
+    spreadRadius: 0,
     offset: const Offset(0, 8),
   );
+
+  // Helper to build consistent glass decoration
+  static BoxDecoration glassDecoration({
+    double borderRadius = 24.0,
+    Color? color,
+    Border? border,
+  }) {
+    return BoxDecoration(
+      color: color ?? cardBackground,
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: border ?? Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+      boxShadow: [softShadow],
+    );
+  }
 
   // Modern Typography
   static TextStyle get h1 => GoogleFonts.outfit(
@@ -71,7 +86,7 @@ class DesignSystem {
   static TextStyle get buttonText => GoogleFonts.outfit(
     fontSize: 16,
     fontWeight: FontWeight.bold,
-    color: textMain,
+    color: Colors.white, // Always white on a dark gradient background
     letterSpacing: 1.0,
   );
 }

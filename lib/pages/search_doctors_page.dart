@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
 import '../services/api_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'doctor_clinics_page.dart';
 
 class SearchDoctorsPage extends StatefulWidget {
   const SearchDoctorsPage({super.key});
@@ -84,7 +86,7 @@ class _SearchDoctorsPageState extends State<SearchDoctorsPage> {
         elevation: 0,
         title: Text('Find Specialists', style: DesignSystem.h2),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: DesignSystem.textMain),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -98,18 +100,13 @@ class _SearchDoctorsPageState extends State<SearchDoctorsPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: DesignSystem.primaryAccent))
                 : _doctors.isEmpty
-                    ? const Center(child: Text('No elite specialists found.', style: TextStyle(color: Colors.white24)))
+                    ? Center(child: Text('No elite specialists found.', style: TextStyle(color: DesignSystem.textSub.withOpacity(0.5), fontWeight: FontWeight.bold)))
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         itemCount: _doctors.length,
                         itemBuilder: (context, index) {
                           final doc = _doctors[index];
-                          return _buildDoctorCard(
-                              doc['name'] ?? 'Doctor',
-                              doc['specialty'] ?? 'Healthcare',
-                              doc['rating']?.toString() ?? '4.5',
-                              doc['photoURL'] ?? '',
-                              doc['distance'] ?? 'Nearby');
+                          return _buildDoctorCard(doc);
                         },
                       ),
           ),
@@ -123,12 +120,13 @@ class _SearchDoctorsPageState extends State<SearchDoctorsPage> {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+        boxShadow: [DesignSystem.softShadow],
       ),
       child: TextField(
         controller: _searchController,
         onSubmitted: (val) => _fetchDoctors(val),
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: DesignSystem.textMain),
         decoration: InputDecoration(
           hintText: 'Search doctors, specialties...',
           hintStyle: TextStyle(color: DesignSystem.textSub.withOpacity(0.5)),
@@ -140,55 +138,83 @@ class _SearchDoctorsPageState extends State<SearchDoctorsPage> {
     );
   }
 
-  Widget _buildDoctorCard(String name, String specialty, String rating, String img, String distance) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: DesignSystem.primaryAccent.withOpacity(0.1),
-            backgroundImage: img.isNotEmpty ? NetworkImage(img) : null,
-            child: img.isEmpty ? const Icon(Icons.person, color: DesignSystem.primaryAccent) : null,
+  Widget _buildDoctorCard(Map<String, dynamic> doc) {
+    final String name = doc['name'] ?? 'Doctor';
+    final String specialty = doc['specialty'] ?? 'Healthcare';
+    final String rating = doc['rating']?.toString() ?? '4.5';
+    final String img = doc['photoURL'] ?? '';
+    final String distance = doc['distance'] ?? 'Nearby';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DoctorClinicsPage(
+              doctorId: doc['id'] ?? '',
+              doctorName: name,
+              specialty: specialty,
+              photoURL: img,
+            ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: DesignSystem.glassWhite,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+              boxShadow: [DesignSystem.softShadow],
+            ),
+            child: Row(
               children: [
-                Text(name, style: DesignSystem.bodyBold),
-                Text(specialty, style: DesignSystem.bodyMain),
-                const SizedBox(height: 4),
-                Row(
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: DesignSystem.primaryAccent.withOpacity(0.1),
+                  backgroundImage: img.isNotEmpty ? NetworkImage(img) : null,
+                  child: img.isEmpty ? const Icon(Icons.person, color: DesignSystem.primaryAccent) : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: DesignSystem.bodyBold),
+                      Text(specialty, style: DesignSystem.bodyMain),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, color: DesignSystem.primaryAccent, size: 12),
+                          const SizedBox(width: 4),
+                          Text(distance, style: TextStyle(color: DesignSystem.textSub.withOpacity(0.7), fontSize: 11)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
                   children: [
-                    const Icon(Icons.location_on, color: DesignSystem.primaryAccent, size: 12),
-                    const SizedBox(width: 4),
-                    Text(distance, style: TextStyle(color: DesignSystem.textSub.withOpacity(0.7), fontSize: 11)),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(rating, style: DesignSystem.bodyBold.copyWith(fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text('BOOK', style: TextStyle(color: DesignSystem.primaryAccent, fontWeight: FontWeight.bold, fontSize: 10)),
                   ],
                 ),
               ],
             ),
           ),
-          Column(
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  const SizedBox(width: 4),
-                  Text(rating, style: DesignSystem.bodyBold.copyWith(fontSize: 12)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text('BOOK', style: TextStyle(color: DesignSystem.primaryAccent, fontWeight: FontWeight.bold, fontSize: 10)),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
 
@@ -50,20 +51,27 @@ class SettingsPage extends StatelessWidget {
   }
 
   Widget _buildSettingsTile(String title, IconData icon, bool hasSwitch) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: DesignSystem.primaryAccent, size: 24),
-        title: Text(title, style: DesignSystem.bodyBold),
-        trailing: hasSwitch 
-            ? Switch(value: true, onChanged: (v) {}, activeColor: DesignSystem.primaryAccent)
-            : const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 16),
-        onTap: () {},
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: DesignSystem.glassWhite,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+            boxShadow: [DesignSystem.softShadow],
+          ),
+          child: ListTile(
+            leading: Icon(icon, color: DesignSystem.primaryAccent, size: 24),
+            title: Text(title, style: DesignSystem.bodyBold),
+            trailing: hasSwitch 
+                ? Switch(value: true, onChanged: (v) {}, activeColor: DesignSystem.primaryAccent)
+                : Icon(Icons.arrow_forward_ios, color: DesignSystem.textSub.withOpacity(0.3), size: 16),
+            onTap: () {},
+          ),
+        ),
       ),
     );
   }

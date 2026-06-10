@@ -5,6 +5,9 @@ import '../theme/design_system.dart';
 import 'signup_page.dart';
 import 'home_page.dart';
 import 'otp_screen.dart';
+import 'forgot_password_page.dart';
+import 'profile/edit_profile_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -161,11 +164,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     }
   }
 
-  void _navigateToHome() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
-    );
+  void _navigateToHome() async {
+    final prefs = await SharedPreferences.getInstance();
+    final phone = prefs.getString('user_phone');
+    if (phone == null || phone.isEmpty || phone == 'Not Provided') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const EditProfilePage(isMandatoryProfileSetup: true)),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    }
   }
 
   void _showErrorSnackBar(String message) {
@@ -215,7 +227,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             decoration: BoxDecoration(
                               color: DesignSystem.glassWhite,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white12),
+                              border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
                             ),
                             child: const Icon(Icons.auto_awesome, size: 48, color: DesignSystem.primaryAccent),
                           ),
@@ -223,7 +235,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           Text('Clini Sync', style: DesignSystem.h1),
                           Text(
                             'Your Health, Synchronised',
-                            style: DesignSystem.bodyMain.copyWith(color: DesignSystem.primaryAccent),
+                            style: DesignSystem.bodyMain.copyWith(color: DesignSystem.primaryAccent, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -237,8 +249,32 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     _buildGlassField(_emailController, 'Email Address', Icons.alternate_email),
                     const SizedBox(height: 20),
                     _buildGlassField(_passwordController, 'Security Token / Password', Icons.security, isPassword: true),
-                    
-                    const SizedBox(height: 40),
+
+                    // Forgot Password — flush below password field
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                        ),
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: DesignSystem.primaryAccent,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 28),
                     _isLoading 
                       ? const Center(child: CircularProgressIndicator(color: DesignSystem.primaryAccent))
                       : Column(
@@ -248,7 +284,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             _buildGoogleButton(),
                           ],
                         ),
-                    
+
+
                     const SizedBox(height: 40),
                     Center(
                       child: TextButton(
@@ -286,7 +323,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         shape: BoxShape.circle,
       ),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+        filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
         child: Container(color: Colors.transparent),
       ),
     );
@@ -297,12 +334,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: TextField(
         controller: controller,
         obscureText: isPassword,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: DesignSystem.textMain),
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: DesignSystem.primaryAccent, size: 20),
           hintText: label,
@@ -342,12 +379,12 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
       ),
       child: TextButton.icon(
         onPressed: _handleGoogleLogin,
-        icon: Image.network('https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png', height: 24),
-        label: Text('Continue with Google', style: DesignSystem.buttonText.copyWith(fontSize: 14)),
+        icon: Image.network('https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png', height: 24),
+        label: Text('Continue with Google', style: TextStyle(color: DesignSystem.textMain, fontWeight: FontWeight.bold, fontSize: 14)),
       ),
     );
   }

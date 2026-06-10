@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
 import '../services/api_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'clinic_doctors_page.dart';
 
 class SearchClinicsPage extends StatefulWidget {
   const SearchClinicsPage({super.key});
@@ -84,7 +86,7 @@ class _SearchClinicsPageState extends State<SearchClinicsPage> {
         elevation: 0,
         title: Text('Search Clinics', style: DesignSystem.h2),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios, color: DesignSystem.textMain),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -98,17 +100,13 @@ class _SearchClinicsPageState extends State<SearchClinicsPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: DesignSystem.primaryAccent))
                 : _clinics.isEmpty
-                    ? const Center(child: Text('No elite clinics found in range.', style: TextStyle(color: Colors.white24)))
+                    ? Center(child: Text('No elite clinics found in range.', style: TextStyle(color: DesignSystem.textSub.withOpacity(0.5), fontWeight: FontWeight.bold)))
                     : ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         itemCount: _clinics.length,
                         itemBuilder: (context, index) {
                           final clinic = _clinics[index];
-                          return _buildClinicCard(
-                              clinic['name'] ?? 'Clinic',
-                              clinic['location'] ?? 'Location Syncing...',
-                              clinic['distance'] ?? 'Nearby',
-                              Icons.local_hospital);
+                          return _buildClinicCard(clinic, Icons.local_hospital);
                         },
                       ),
           ),
@@ -122,12 +120,13 @@ class _SearchClinicsPageState extends State<SearchClinicsPage> {
       decoration: BoxDecoration(
         color: DesignSystem.glassWhite,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+        boxShadow: [DesignSystem.softShadow],
       ),
       child: TextField(
         controller: _searchController,
         onSubmitted: (val) => _fetchClinics(val),
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: DesignSystem.textMain),
         decoration: InputDecoration(
           hintText: 'Search centers, diagnostics...',
           hintStyle: TextStyle(color: DesignSystem.textSub.withOpacity(0.5)),
@@ -139,37 +138,62 @@ class _SearchClinicsPageState extends State<SearchClinicsPage> {
     );
   }
 
-  Widget _buildClinicCard(String name, String location, String distance, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: DesignSystem.glassWhite,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: DesignSystem.secondaryAccent.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildClinicCard(Map<String, dynamic> clinic, IconData icon) {
+    final String name = clinic['name'] ?? 'Clinic';
+    final String location = clinic['location'] ?? 'Location Syncing...';
+    final String distance = clinic['distance'] ?? 'Nearby';
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClinicDoctorsPage(
+              clinicId: clinic['id'] ?? '',
+              clinicName: name,
+              location: location,
             ),
-            child: Icon(icon, color: DesignSystem.secondaryAccent, size: 28),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: DesignSystem.glassWhite,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+              boxShadow: [DesignSystem.softShadow],
+            ),
+            child: Row(
               children: [
-                Text(name, style: DesignSystem.bodyBold),
-                Text(location, style: DesignSystem.bodyMain),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: DesignSystem.secondaryAccent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: DesignSystem.secondaryAccent, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name, style: DesignSystem.bodyBold),
+                      Text(location, style: DesignSystem.bodyMain),
+                    ],
+                  ),
+                ),
+                Text(distance, style: DesignSystem.bodyBold.copyWith(fontSize: 12, color: DesignSystem.primaryAccent)),
               ],
             ),
           ),
-          Text(distance, style: DesignSystem.bodyBold.copyWith(fontSize: 12, color: DesignSystem.primaryAccent)),
-        ],
+        ),
       ),
     );
   }
