@@ -6,8 +6,8 @@ class ApiService {
   // ⚡ IMPORTANT ⚡
   // Emulator: Use "http://10.0.2.2:5000/api"
   // Physical Device: Use your PC IP (e.g. "http://192.168.1.18:5000/api")
-  //static const String baseUrl = "http://192.168.0.131:5000/api";
-  static const String baseUrl = "https://chem-manager-backend-zxlh.onrender.com/api";
+  static const String baseUrl = "http://192.168.1.18:5000/api";
+  //static const String baseUrl = "https://chem-manager-backend-zxlh.onrender.com/api";
 
   static Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final prefs = await SharedPreferences.getInstance();
@@ -32,6 +32,33 @@ class ApiService {
       return response;
     } catch (e) {
       print('❌ [API POST] FAILED: $e');
+      rethrow;
+    }
+  }
+
+  static Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final url = Uri.parse('$baseUrl$endpoint');
+    print('🚀 [API PATCH] $url');
+    print('🔑 Using Token: ${token != null ? "YES" : "NO"}');
+
+    try {
+      final response = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      ).timeout(const Duration(seconds: 10));
+      
+      print('✅ [API PATCH] Success (${response.statusCode})');
+      return response;
+    } catch (e) {
+      print('❌ [API PATCH] FAILED: $e');
       rethrow;
     }
   }
@@ -87,6 +114,13 @@ class ApiService {
 
   static Future<http.Response> createBooking(Map<String, dynamic> bookingData) async {
     return await post('/patients', bookingData);
+  }
+
+  static Future<http.Response> updateBookingPayment(String bookingId, String status) async {
+    return await patch('/patients/$bookingId', {
+      'paymentStatus': status,
+      'paymentMode': 'online'
+    });
   }
 
   static Future<http.Response> getBookings({String? phone}) async {

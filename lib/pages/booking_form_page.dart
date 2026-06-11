@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
 import '../services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'checkout_page.dart';
 
 class BookingFormPage extends StatefulWidget {
   final String doctorId;
@@ -235,7 +236,33 @@ class _BookingFormPageState extends State<BookingFormPage> {
       setState(() => _isLoading = false);
 
       if (response.statusCode == 201) {
-        _showSuccessDialog();
+        if (paymentMode == 'online') {
+          // Navigate to Simulated Checkout Screen
+          final bool? paid = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CheckoutPage(
+                booking: data,
+                doctorName: widget.doctorName,
+                clinicName: widget.clinicName,
+                amount: 500.0,
+              ),
+            ),
+          );
+          if (paid == true) {
+            _showSuccessDialog();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Booking created! Payment is pending. You can pay online from visit details.'),
+                duration: Duration(seconds: 4),
+              ),
+            );
+            Navigator.pop(context); // Go back
+          }
+        } else {
+          _showSuccessDialog();
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data['message'] ?? 'Booking failed.')),
@@ -729,12 +756,6 @@ class _BookingFormPageState extends State<BookingFormPage> {
                         setSheetState(() {
                           selectedPaymentMethod = 'online';
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Online payment gateway will be integrated later. Please select Pay on Hand.'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -883,17 +904,7 @@ class _BookingFormPageState extends State<BookingFormPage> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context); // Close sheet
-                          if (selectedPaymentMethod == 'hand') {
-                            _submitBooking('hand');
-                          } else {
-                            // Prompt warning and proceed with hand payment
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Online payments are unavailable. Proceeding with Pay on Hand instead.'),
-                              ),
-                            );
-                            _submitBooking('hand');
-                          }
+                          _submitBooking(selectedPaymentMethod);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
@@ -905,7 +916,7 @@ class _BookingFormPageState extends State<BookingFormPage> {
                         child: Text(
                           selectedPaymentMethod == 'hand'
                               ? 'PROCEED & BOOK'
-                              : 'INTEGRATE LATER & BOOK',
+                              : 'PROCEED TO PAY',
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,

@@ -1,17 +1,31 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
+import 'checkout_page.dart';
 
-class VisitDetailPage extends StatelessWidget {
+class VisitDetailPage extends StatefulWidget {
   final Map<String, dynamic> booking;
 
   const VisitDetailPage({super.key, required this.booking});
 
   @override
+  State<VisitDetailPage> createState() => _VisitDetailPageState();
+}
+
+class _VisitDetailPageState extends State<VisitDetailPage> {
+  late Map<String, dynamic> _booking;
+
+  @override
+  void initState() {
+    super.initState();
+    _booking = Map<String, dynamic>.from(widget.booking);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Extract populated fields safely
-    final doctor = booking['doctorId'];
-    final clinic = booking['orgId'];
+    final doctor = _booking['doctorId'];
+    final clinic = _booking['orgId'];
 
     final doctorName = doctor is Map ? (doctor['name'] ?? 'Doctor') : 'Doctor';
     final doctorSpecialty = doctor is Map ? (doctor['specialization'] ?? 'Specialist') : 'Specialist';
@@ -24,25 +38,25 @@ class VisitDetailPage extends StatelessWidget {
 
     // Parse appointmentDate
     String formattedDate = 'Date pending';
-    if (booking['appointmentDate'] != null) {
+    if (_booking['appointmentDate'] != null) {
       try {
-        final parsedDate = DateTime.parse(booking['appointmentDate']);
+        final parsedDate = DateTime.parse(_booking['appointmentDate']);
         formattedDate = "${parsedDate.day.toString().padLeft(2, '0')}/${parsedDate.month.toString().padLeft(2, '0')}/${parsedDate.year}";
       } catch (_) {}
     }
 
-    final appointmentTime = booking['appointmentTime'] ?? 'Timing pending';
-    final status = booking['status'] ?? 'pending';
-    final patientName = booking['name'] ?? 'Patient';
-    final age = booking['age']?.toString() ?? 'N/A';
-    final gender = booking['gender'] ?? 'N/A';
-    final phone = booking['phone'] ?? 'N/A';
-    final weight = booking['weight'] ?? 'N/A';
-    final bp = booking['bp'] ?? 'N/A';
-    final issueDetails = booking['issueDetails'] ?? 'No descriptions provided';
-    final notes = booking['notes'] ?? '';
-    final paymentMode = booking['paymentMode'] ?? 'Pay on hand';
-    final paymentStatus = booking['paymentStatus'] ?? 'pending';
+    final appointmentTime = _booking['appointmentTime'] ?? 'Timing pending';
+    final status = _booking['status'] ?? 'pending';
+    final patientName = _booking['name'] ?? 'Patient';
+    final age = _booking['age']?.toString() ?? 'N/A';
+    final gender = _booking['gender'] ?? 'N/A';
+    final phone = _booking['phone'] ?? 'N/A';
+    final weight = _booking['weight'] ?? 'N/A';
+    final bp = _booking['bp'] ?? 'N/A';
+    final issueDetails = _booking['issueDetails'] ?? 'No descriptions provided';
+    final notes = _booking['notes'] ?? '';
+    final paymentMode = _booking['paymentMode'] ?? 'Pay on hand';
+    final paymentStatus = _booking['paymentStatus'] ?? 'pending';
 
     Color statusColor;
     IconData statusIcon;
@@ -344,6 +358,59 @@ class VisitDetailPage extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (paymentMode.toLowerCase() == 'online' && 
+                      (paymentStatus.toLowerCase() == 'pending' || paymentStatus.toLowerCase() == 'unpaid')) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: DesignSystem.primaryGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [DesignSystem.neonShadow(DesignSystem.primaryAccent)],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final bool? paid = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutPage(
+                                booking: _booking,
+                                doctorName: doctorName,
+                                clinicName: clinicName,
+                                amount: 500.0,
+                              ),
+                            ),
+                          );
+                          if (paid == true) {
+                            setState(() {
+                              _booking['paymentStatus'] = 'paid';
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.payment_rounded, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text(
+                              'PAY ONLINE NOW (₹500)',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 30),
                 ],
               ),
